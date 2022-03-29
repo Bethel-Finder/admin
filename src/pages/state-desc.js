@@ -17,9 +17,10 @@ import PlacesAutocomplete, {
   geocodeByPlaceId,
   getLatLng,
 } from "react-places-autocomplete";
-
+import { connect } from "react-redux";
+import { disp_states } from "../redux";
 import { useHistory, useParams } from "react-router-dom";
-
+import { add_dist } from "../functions/controllers/add-district";
 const formInput = {
   border: "none",
   borderRadius: "6px",
@@ -50,9 +51,10 @@ const which = {
   outline: "none",
 };
 
-function Description() {
+function Description({ appState, dispStates }) {
   const history = useHistory();
-
+  const reduxState = appState;
+  const { state } = useParams();
   const [compState, setCompState] = useState({
     add: false,
   });
@@ -87,7 +89,7 @@ function Description() {
               flexFlow: "row nowrap",
               width: "100%",
               height: "100px",
-              backgroundColor: "#78a7a6",
+              // backgroundColor: "#78a7a6",
               borderBottom: "1px solid #ccc",
               color: "white",
             }}
@@ -131,22 +133,27 @@ function Description() {
     }
 
     var options = {
-  enableHighAccuracy: true,
-  timeout: 5000,
-  maximumAge: 0
+      enableHighAccuracy: true,
+      timeout: 5000,
+      maximumAge: 0,
     };
-    
 
-    navigator.geolocation.getCurrentPosition(onSuccess,onError, options );
+    navigator.geolocation.getCurrentPosition(onSuccess, onError, options);
+
+    let actuallState = reduxState.states.filter((e) => e.state == state);
+    setCompState({
+      ...compState,
+      state: actuallState[0],
+    });
+    console.log(actuallState[0]);
   }, []);
 
   const setAccuracy = () => {
-    return { enableHighAccuracy: true, maximumAge: 2000, timeout: 5000 }
-  }
-  
+    return { enableHighAccuracy: true, maximumAge: 2000, timeout: 5000 };
+  };
+
   const onSuccess = (location) => {
-    
-    if (location.coords.accuracy > 90000000) { 
+    if (location.coords.accuracy > 90000000) {
       console.log("The GPS accuracy isn't good enough");
     } else {
       setCoordinates({
@@ -155,9 +162,8 @@ function Description() {
         lng: location.coords.longitude,
       });
       decodeLatLng(location.coords.latitude, location.coords.longitude);
-      
     }
-    console.log(location.coords.accuracy)
+    console.log(location.coords.accuracy);
   };
 
   const onError = (error) => {
@@ -312,6 +318,26 @@ function Description() {
       address,
     };
     console.log(mapData);
+  };
+
+  const [districtname, setDist] = useState("");
+  const [distExtre, setDistExt] = useState("");
+  const createDistrict = () => {
+    const newObj = {
+      name: districtname,
+      desc: distExtre,
+      state,
+    };
+    add_dist(newObj).then((res) => {
+      dispStates(res)
+      console.log(res);
+      setCompState({
+        ...compState,
+        add:false
+      })
+      setDist("")
+      setDistExt("")
+    });
   };
 
   const addComp = () => {
@@ -585,7 +611,13 @@ function Description() {
                   background: "",
                 }}
               >
-                <form className="addModalForm">
+                <form
+                  className="addModalForm"
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    createDistrict();
+                  }}
+                >
                   <span
                     onClick={() => {
                       close();
@@ -601,11 +633,15 @@ function Description() {
                   >
                     <Cancel />
                   </span>
-                  <b>Add new Area</b>
+                  <b>Add new District</b>
                   <input
                     style={formInput}
                     placeholder="District name"
                     type="text"
+                    value={districtname}
+                    onChange={(e) => {
+                      setDist(e.target.value);
+                    }}
                   />{" "}
                   <br />
                   <textarea
@@ -616,6 +652,10 @@ function Description() {
                       borderRadius: "6px",
                       border: "none",
                       outline: "none",
+                    }}
+                    value={distExtre}
+                    onChange={(e) => {
+                      setDistExt(e.target.value);
                     }}
                     placeholder="Add extra information about the District"
                   ></textarea>
@@ -746,9 +786,11 @@ function Description() {
                       }}
                     >
                       <span>
-                        AMANI'S FIRE III is beyond what you can imagine, Let's
-                        restore the laughter you lost long time ago as the best
-                        of comedians will be coming your way.
+                        {compState.state ? (
+                          <> {compState.state.meta.statedesc}</>
+                        ) : (
+                          "Loading...."
+                        )}
                       </span>
                     </Typography>
                     <Typography
@@ -781,7 +823,13 @@ function Description() {
                             fontWeight: "bold",
                           }}
                         >
-                          <span>Bishop Paul Jumbo</span>
+                          <span>
+                            {compState.state ? (
+                              <> {compState.state.meta.admin}</>
+                            ) : (
+                              "Loading...."
+                            )}
+                          </span>
                         </Typography>
                       </div>
                       <div>
@@ -789,7 +837,7 @@ function Description() {
                           variant="h6"
                           style={{ color: "gray", paddingBottom: "10px" }}
                         >
-                          Deputy Admin
+                          Admin's phone
                         </Typography>
                         <Typography
                           variant="body1"
@@ -799,7 +847,13 @@ function Description() {
                             fontWeight: "bold",
                           }}
                         >
-                          <span>DV. Kula Henry</span>
+                          <span>
+                            {compState.state ? (
+                              <>{compState.state.meta.admincontact}</>
+                            ) : (
+                              "Loading...."
+                            )}
+                          </span>
                         </Typography>
                       </div>
                     </div>
@@ -813,7 +867,7 @@ function Description() {
                       variant="h6"
                       style={{ color: "gray", paddingBottom: "10px" }}
                     >
-                      Address
+                      HQR. Address
                     </Typography>
                     <Typography
                       variant="body1"
@@ -823,7 +877,13 @@ function Description() {
                         fontWeight: "bold",
                       }}
                     >
-                      <span>125 Aggery Road Port Harcourt</span>
+                      <span>
+                        {compState.state ? (
+                          <>{compState.state.meta.hqr}</>
+                        ) : (
+                          "Loading...."
+                        )}
+                      </span>
                     </Typography>
                   </Grid>
                   <Grid item md={6} sm={12} xs={12}>
@@ -831,14 +891,14 @@ function Description() {
                       style={{
                         width: "100%",
                         height: "auto",
-                        backgroundColor: "#78a7a6",
+                        border: "1px solid #78a7a6",
                         borderRadius: 10,
                         boxShadow: "1px 1px 3px rgba(0, 0, 0, 0.4)",
                         padding: "20px 0",
                         margin: "40px 0",
                       }}
                     >
-                      <Typography
+                      {/* <Typography
                         variant="p"
                         style={{
                           color: "crimson",
@@ -847,7 +907,7 @@ function Description() {
                         }}
                       >
                         Basic Details
-                      </Typography>
+                      </Typography> */}
 
                       {allCategories()}
 
@@ -893,7 +953,8 @@ function Description() {
                   <div
                     className="App"
                     style={{
-                      background: "#78a7a6",
+                      border: "1px solid #78a7a6",
+                      background: " #f3f3f3",
                       marginLeft: "0px",
                       padding: "20px",
                       width: "100%",
@@ -935,4 +996,16 @@ function Description() {
   );
 }
 
-export default Description;
+const mapStateToProps = (state) => {
+  return {
+    appState: state.user,
+  };
+};
+
+const mapDispatchToProps = (dispatch, encoded) => {
+  return {
+    dispStates: (payload) => dispatch(disp_states(payload)),
+  };
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(Description);

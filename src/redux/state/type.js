@@ -1,6 +1,6 @@
 export const LOGIN = "LOGIN"
 export const LOGOUT = "LOGOUT"
-export const EVENTS = "EVENTS"
+export const STATE = "STATE"
 export const VIEWEVENT = "VIEWEVENT"
 export const SEARCH = "SEARCH"
 

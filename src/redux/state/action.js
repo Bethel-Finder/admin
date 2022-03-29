@@ -1,7 +1,7 @@
 import { 
    LOGIN,
    LOGOUT,
-   EVENTS,
+   STATE,
    VIEWEVENT,
    BUY,
    BOUGHT,
@@ -21,9 +21,9 @@ export const logout = ()=>{
    }
 }
 
-export const disp_events = (payload) => {
+export const disp_states = (payload) => {
    return {
-      type: EVENTS,
+      type: STATE,
       payload
    }
 }

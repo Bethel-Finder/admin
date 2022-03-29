@@ -1,7 +1,7 @@
 import { 
    LOGIN, 
    LOGOUT,
-   EVENTS,
+   STATE,
    VIEWEVENT,
    BUY,
    BOUGHT,
@@ -12,7 +12,7 @@ import {
 const initialState = {
    loggedIn: false,
    loggedInUser: '',
-   events: [],
+   states: [],
    viewevent: [],
    buy: [],
    bought:[],
@@ -44,10 +44,10 @@ const reducer = (state = initialState, action) => {
          
          }
       
-      case EVENTS:
+      case STATE:
          return {
             ...state,
-            events:action.payload
+            states:action.payload
          }
       
          case VIEWEVENT:
